@@ -1,7 +1,10 @@
 // Code door J. Barten
 // maart 2025
 
-// bij het opstarten starten we in de wachtstand
+// status van het hele rek, bij opstart in wachtstand
+bool rekStatus = 0;    // 0 = het rek is in rust, 1 = het rek in acyief met bewateren
+
+// bij het opstarten starten we in alle trays in de wachtstand
 byte tray1Status = 0;  // 0 = wachten, 1 = vullen, 2 = inwateren, 3 = leeglopen
 byte tray2Status = 0;
 byte tray3Status = 0;
@@ -21,6 +24,7 @@ byte kraan5 = 15;
 byte kraan6 = 16;
 
 // 6 tray schakelaars toekennen aan een pin
+byte startSwitch = 23;
 byte switch1 = 17;
 byte switch2 = 18;
 byte switch3 = 19;
@@ -53,7 +57,7 @@ void setup() {
   pinMode(kraan5, OUTPUT);
   pinMode(kraan6, OUTPUT);
 
-  pinMode(switch0, INPUT);  // pins definiëren als ingaande poorten
+  pinMode(startSwitch, INPUT);  // pins definiëren als ingaande poorten
   pinMode(switch1, INPUT);
   pinMode(switch2, INPUT);
   pinMode(switch3, INPUT);
@@ -71,7 +75,7 @@ void setup() {
 }
 
 void loop() {
-  if (digitalRead(switch0 == HIGH)) {    // lees de startschakelaar. Dit moet een drukchakelaar zijn
+  if (digitalRead(startSwitch == HIGH)) {    // lees de startschakelaar. Dit moet een drukchakelaar zijn
     if (digitalRead(switch1 == HIGH)) {  // lees trayschakelaar 1
       switch1State = 1;                  // sla de stand op in een boolse waarde
     }
@@ -100,6 +104,7 @@ void loop() {
     // kraan 0 open
     // pulsen tellen
     // als pulsen voldoende kraan 0 dicht
+    // pulsen terugzetten naar 0
     // tray status 2
     // timer starten voor het inwateren
     // timer klaar?
@@ -116,6 +121,7 @@ void loop() {
     // kraan 0 open
     // pulsen tellen
     // als pulsen voldoende kraan 0 dicht
+    // pulsen terugzetten naar 0
     // tray status 2
     // timer starten voor het inwateren
     // timer klaar?
@@ -124,5 +130,5 @@ void loop() {
     // tray2status = 0
     // switch2State = 0
   }
-  //enz
+  //enz voor de andere 4 trays
 }

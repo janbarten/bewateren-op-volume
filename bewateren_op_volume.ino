@@ -159,5 +159,5 @@ void loop() {
 }
 
 void ISR() {
-  pulseCount++;  // Iterrupt routine voor het ophogen van de pulse teller
+  pulseCount++;  // Interrupt routine voor het ophogen van de pulse teller
 }

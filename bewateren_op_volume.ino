@@ -23,7 +23,7 @@ int kraan4 = 14;
 int kraan5 = 15;
 int kraan6 = 16;
 
-// 6 tray schakelaars en een startknopntoekennen aan een pin
+// 6 tray schakelaars en een startknop toekennen aan een pin
 int startSwitch = 23;
 int switch1 = 17;
 int switch2 = 18;
@@ -55,6 +55,7 @@ unsigned int pulseWaarde = 630;
 // inwatering en leeglopenduur in minuten
 int inwateren = 20;
 int leegloop = 2;
+int kraanPauze = 20000; // 20 seconden voor openen en sluiten
 
 void setup() {
   Serial.begin(9600);  // instellen snelheid seriële communicatietrayStatus = 0;
@@ -122,7 +123,7 @@ void loop() {
     tray1Status = 1;                    // we gaan tray 1 vullen
                                         // bij het opstarten stonden alle kranen open
     digitalWrite(kraan1, LOW);          // kogelkraan tray 1 dicht
-    delay(20000);                       // pauze om de kogelkraan de tijd te geven om te sluiten
+    delay(kraanPauze);                  // pauze om de kogelkraan de tijd te geven om te sluiten
     while (pulseCount < pulseWaarde) {  // pulsen tellen
       digitalWrite(kraan0, HIGH);       // hoofdkraan open om te vullen
     }
@@ -132,7 +133,7 @@ void loop() {
     delay(inwateren * 60000);    // timer starten voor het inwateren *60000 om aan minuten te komen
     tray1Status = 3;             // we gaan tray 1 laten leeglopen
     digitalWrite(kraan1, HIGH);  // kogelkraan tray 1 dicht// kraan 1 open (staan nu allemaal open)
-    delay(leegloop * 60000);     // tijd gunnen voor het leeglopen
+    delay(leegloop * 60000);     // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
     tray1Status = 0;             // tray status 0
     switch1State = 0;            // leesstatus van trayschakelaar van 1 terug naar 0
   }
@@ -141,7 +142,7 @@ void loop() {
     tray2Status = 1;                            // we gaan tray 1 vullen
                                                 // bij het opstarten stonden alle kranen open
     digitalWrite(kraan2, LOW);                  // kogelkraan tray 1 dicht
-    delay(20000);                               // pauze om de kogelkraan de tijd te geven om te sluiten
+    delay(kraanPauze);                          // pauze om de kogelkraan de tijd te geven om te sluiten
     while (pulseCount < pulseWaarde) {          // pulsen tellen
       digitalWrite(kraan0, HIGH);               // hoofdkraan open om te vullen
     }
@@ -151,7 +152,7 @@ void loop() {
     delay(inwateren * 60000);    // timer starten voor het inwateren *60000 om aan minuten te komen
     tray2Status = 3;             // we gaan tray 1 laten leeglopen
     digitalWrite(kraan1, HIGH);  // kogelkraan tray 1 dicht// kraan 1 open (staan nu allemaal open)
-    delay(leegloop * 60000);     // tijd gunnen voor het leeglopen
+    delay(leegloop * 60000);     // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
     tray2Status = 0;             // tray status 0
     switch2State = 0;            // leesstatus van trayschakelaar van 1 terug naar 0
   }

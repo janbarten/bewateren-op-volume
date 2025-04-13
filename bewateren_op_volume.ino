@@ -99,19 +99,8 @@ void setup() {
 }
 
 void loop() {
-  if (digitalRead (resetButton) == HIGH) { // is de reset button ingedrukt?
-    rekStatus = 0;                         // rekStatus weer terug naar rust (0)
-  }
-
-  if (rekStatus == 3) {          // controleren of we in de alarm status zijn
-    digitalWrite(kraan0, LOW);   // hoofdkraan dicht
-    digitalWrite(kraan1, HIGH);  // nog onderzoeken of dit niet LOW moet zijn
-    digitalWrite(kraan2, HIGH);  // is afhanklijk van het relaisblok
-    digitalWrite(kraan3, HIGH);
-    digitalWrite(kraan4, HIGH);
-    digitalWrite(kraan5, HIGH);
-    digitalWrite(kraan6, HIGH);
-    // hier kunnen nog toeters en bellen zoals een zwaailamp of een claxon
+  if (digitalRead(resetButton) == HIGH) {  // is de reset button ingedrukt?
+    ESP.reset();                           // Esp herstart
   }
 
   if (digitalRead(startSwitch == HIGH)) {  // lees de startschakelaar. Dit moet een drukchakelaar zijn
@@ -187,5 +176,19 @@ void ISRpulsen() {
 }
 
 void ISRalarm() {
-  rekStatus = 3;  // systeem komt in alarmstand na pulsen uit de overflow sensor
+  rekStatus = 3;               // systeem komt in alarmstand na pulsen uit de overflow sensor
+  digitalWrite(kraan0, LOW);   // hoofdkraan dicht
+  digitalWrite(kraan1, HIGH);  // nog onderzoeken of dit niet LOW moet zijn
+  digitalWrite(kraan2, HIGH);  // is afhanklijk van het relaisblok
+  digitalWrite(kraan3, HIGH);
+  digitalWrite(kraan4, HIGH);
+  digitalWrite(kraan5, HIGH);
+  digitalWrite(kraan6, HIGH);
+
+  while (rekStatus == 3) {
+    if (digitalRead(resetButton) == HIGH) {  // is de reset button ingedrukt?
+      ESP.reset();                           // Esp herstart
+    }
+    Serial.println("Alarm");  //Zolang de alarmstand duurt blijft deze booschap herhalen en gebeurt er niets
+  }
 }

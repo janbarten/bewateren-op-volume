@@ -1,6 +1,46 @@
 // Code door J. Barten
 // april 2025
 
+/* 
+Hardware aansluitingen
+Goed kijken naar de pinbezetting op het ESP niet alle pinnen zijn beschikbaar voor elke taak.
+Hieronder een fictieve pinbezetting!!
+*/
+
+// hoofdkraan toekennen aan een pin
+int kraan0 = 10;
+
+// 6 kogelkranen toekennen aan een pin
+int kraan1 = 11;
+int kraan2 = 12;
+int kraan3 = 13;
+int kraan4 = 14;
+int kraan5 = 15;
+int kraan6 = 16;
+
+// reset- en een startknop toekennen aan een pin
+int resetButton = 17;  // om uit de alarm stand te komen en naar rsut stans
+int startSwitch = 18;
+
+// start schakelaar
+int switch0 = 19;
+
+// tray schakelaars toekennen aan een pin
+int switch1 = 20;
+int switch2 = 21;
+int switch3 = 22;
+int switch4 = 23;
+int switch5 = 24;
+int switch6 = 25;
+
+// pin voor de pulsen naar de interrupt
+int flowSensor = 34;
+int overFlow = 35;
+
+/*
+Variabelen
+*/
+
 // status van het hele rek, bij opstart in wachtstand
 bool rekStatus = 0;  // 0 = het rek is in rust, 1 = het rek in actief met bewateren 3 = ALARM
 
@@ -12,30 +52,6 @@ int tray4Status = 0;
 int tray5Status = 0;
 int tray6Status = 0;
 
-/* 
-Goed kijken naar de pinbezetting op het ESP niet alle pinnen zijn beschikbaar voor elke taak.
-Hieronder een fictieve pinbezetting!!
-*/
-int kraan0 = 10;
-
-// 6 kogelkranen toekennen aan een pin
-int kraan1 = 11;
-int kraan2 = 12;
-int kraan3 = 13;
-int kraan4 = 14;
-int kraan5 = 15;
-int kraan6 = 16;
-
-// 6 tray schakelaars en een startknop toekennen aan een pin
-int resetButton = 36;  // om uit de alarm stand te komen en naar rsut stans
-int startSwitch = 23;
-int switch1 = 17;
-int switch2 = 18;
-int switch3 = 19;
-int switch4 = 20;
-int switch5 = 21;
-int switch6 = 22;
-
 // 6 tray schakelaarstanden kunnen opslaan in een boolse waarde
 bool switch1State = 0;
 bool switch2State = 0;
@@ -43,13 +59,6 @@ bool switch3State = 0;
 bool switch4State = 0;
 bool switch5State = 0;
 bool switch6State = 0;
-
-// start schakelaar
-int switch0 = 23;
-
-// pin voor de pulsen naar de interrupt
-int flowSensor = 34;
-int overFlow = 35;
 
 // puls teller voor de flowmeter
 unsigned int pulseCount = 0;
@@ -61,6 +70,7 @@ unsigned int pulseWaarde = 630;
 int inwateren = 20;
 int leegloop = 2;
 int kraanPauze = 20000;  // 20 seconden voor openen en sluiten
+
 
 void setup() {
   Serial.begin(9600);  // instellen snelheid seriële communicatie
@@ -75,8 +85,8 @@ void setup() {
   pinMode(kraan5, OUTPUT);
   pinMode(kraan6, OUTPUT);
 
-  pinMode(resetButton, INPUT);  // pins definiëren als ingaande poorten
-  pinMode(startSwitch, INPUT);
+  pinMode(resetButton, INPUT_PULLUP);  // pins definiëren als ingaande poorten. Buttons zijn standaard HIGH
+  pinMode(startSwitch, INPUT_PULLUP);
   pinMode(switch1, INPUT);
   pinMode(switch2, INPUT);
   pinMode(switch3, INPUT);
@@ -99,12 +109,12 @@ void setup() {
 }
 
 void loop() {
-  if (digitalRead(resetButton) == HIGH) {  // is de reset button ingedrukt?
-    abort();                           // Esp herstart
+  if (digitalRead(resetButton) == LOW) {  // is de reset button ingedrukt?
+    abort();                              // Esp herstart
   }
 
-  if (digitalRead(startSwitch == HIGH)) {  // lees de startschakelaar. Dit moet een drukchakelaar zijn
-    rekStatus = 1;                         //het rek wordt actief
+  if (digitalRead(startSwitch == LOW)) {  // lees de startschakelaar. Dit moet een drukchakelaar zijn
+    rekStatus = 1;                        //het rek wordt actief
 
     attachInterrupt(flowSensor, ISRpulsen, RISING);  // we zetten de interruptPin aan zodat we de pulsen van van de flowsensor kunnen tellen
     if (digitalRead(switch1 == HIGH)) {              // lees trayschakelaar 1
@@ -186,8 +196,8 @@ void ISRalarm() {
   digitalWrite(kraan6, HIGH);
 
   while (rekStatus == 3) {
-    if (digitalRead(resetButton) == HIGH) {  // is de reset button ingedrukt?
-      abort();                           // Esp herstart
+    if (digitalRead(resetButton) == LOW) {  // is de reset button ingedrukt?
+      abort();                              // Esp herstart
     }
     Serial.println("Alarm");  //Zolang de alarmstand duurt blijft deze booschap herhalen en gebeurt er niets
   }

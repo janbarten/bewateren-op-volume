@@ -3,7 +3,7 @@
 
 /* 
 Hardware aansluitingen
-Goed kijken naar de pinbezetting op het ESP niet alle pinnen zijn beschikbaar voor elke taak.
+Goed kijken naar de pinbezetting op het ESP! Niet alle pinnen zijn beschikbaar voor elke taak.
 Hieronder een fictieve pinbezetting!!
 */
 

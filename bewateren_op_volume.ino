@@ -26,7 +26,7 @@ int kraan4 = 14;
 int kraan5 = 15;
 int kraan6 = 16;
 
-// 6 tray schakelaars en een startknop toekennen aan een pin
+// 6 tray schakelaars reset- en een startknop toekennen aan een pin
 int resetButton = 36;  // om uit de alarm stand te komen en naar rsut stans
 int startSwitch = 23;
 int switch1 = 17;

@@ -4,7 +4,7 @@
 /*
 V2.0
 - code herzien. Werkt nu met een gesumuleerde flowsensor
-- pinbeztting aangepast i.v.m. het inbreken van p24
+- pinbeztting aangepast i.v.m. het ontbreken van pin 24
 
 V1.3
 - pinbeztting volgens voorstel toegevoegd

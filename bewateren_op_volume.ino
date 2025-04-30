@@ -7,7 +7,7 @@ V2.0
 - pinbeztting aangepast i.v.m. het ontbreken van pin 24
 
 V1.3
-- pinbeztting volgens voorstel toegevoegd
+- pinbezetting volgens voorstel toegevoegd
 - afhandeling tray 2 aangepast
 - de alarm ISR aangepast. Alarm mededeling naar de loop
 */

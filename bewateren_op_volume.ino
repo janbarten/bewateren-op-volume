@@ -2,6 +2,10 @@
 // april 2025
 
 /*
+V2.0
+- code herzien. Werkt nu met een gesumuleerde flowsensor
+- pinbeztting aangepast i.v.m. het inbreken van p24
+
 V1.3
 - pinbeztting volgens voorstel toegevoegd
 - afhandeling tray 2 aangepast
@@ -28,11 +32,11 @@ int kraan6 = 32;
 
 // reset- en een startknop toekennen aan een pin
 int resetButton = 33;  // om uit de alarm stand te komen en naar rust stand
-int startSwitch = 18;
+int startButton = 18;
 
 // tray schakelaars toekennen aan een pin
 int switch1 = 4;
-int switch2 = 13;
+int switch2 = 23;
 int switch3 = 14;
 int switch4 = 15;
 int switch5 = 16;
@@ -47,7 +51,7 @@ Variabelen
 */
 
 // status van het hele rek, bij opstart in wachtstand
-bool rekState = 0;  // 0 = het rek is in rust/wachtstand, 1 = het rek in actief met bewateren 3 = ALARM
+bool rekState = 0;  // 0 = het rek is in rust/wachtstand, 1 = het rek in actief met bewateren  3 = ALARM
 
 // bij het opstarten starten we in alle trays in de wachtstand
 int tray1Status = 0;  // 0 = wachten, 1 = vullen, 2 = inwateren, 3 = leeglopen
@@ -56,6 +60,12 @@ int tray3Status = 0;
 int tray4Status = 0;
 int tray5Status = 0;
 int tray6Status = 0;
+
+// detectie of de start en resetknop zijn ingedrukt (om te debouncen)
+bool startButtonState;
+bool resetSwitchState;
+bool laststartButtonState = 0;
+bool lastresetSwitchState = 0;
 
 // 6 tray schakelaarstanden kunnen opslaan in een boolse waarde
 bool switch1State = 0;
@@ -72,9 +82,9 @@ unsigned int pulseCount = 0;
 unsigned int pulseWaarde = 630;
 
 // inwatering en leeglopen duur in minuten
-int inwateren = 20;
+int inwateren = 2;
 int leegloop = 2;
-int kraanPauze = 20000;  // 20 seconden voor openen en sluiten
+int kraanPauze = 5000;  // 20 seconden voor openen en sluiten
 
 unsigned long previousMillis = 0;  // gebruikt om niet blokkerend wachten
 
@@ -85,9 +95,13 @@ void setup() {
   /*
   Ter overweging, bij het minste geringste gaat het rek in alarmstand. Je zou ook hier een aantal pulsen kunnen tellen voor een alarm.
   */
-  attachInterrupt(overFlow, ISRalarm, CHANGE);  // interrupt aanzetten op de overflow
-
-  pinMode(kraan0, OUTPUT);  // pins definiëren als uitgaande poorten
+  pinMode(overFlow, INPUT);
+  pinMode(flowSensor, INPUT);
+  
+  attachInterrupt(overFlow, ISRalarm, CHANGE);      // interrupt aanzetten op de overflow
+  attachInterrupt(resetButton, ISRreset, FALLING);  // interrupt aanzetten voor de reset
+  
+  pinMode(kraan0, OUTPUT);                          // pins definiëren als uitgaande poorten
   pinMode(kraan1, OUTPUT);
   pinMode(kraan2, OUTPUT);
   pinMode(kraan3, OUTPUT);
@@ -96,8 +110,9 @@ void setup() {
   pinMode(kraan6, OUTPUT);
 
   pinMode(resetButton, INPUT_PULLUP);  // pins definiëren als ingaande poorten. Buttons zijn standaard HIGH
-  pinMode(startSwitch, INPUT_PULLUP);
-  pinMode(switch1, INPUT_PULLUP);
+  pinMode(startButton, INPUT_PULLUP);
+
+  pinMode(switch1, INPUT_PULLUP);  // schakelaars om de trays te selecteren die ingewaterd moeten worden
   pinMode(switch2, INPUT_PULLUP);
   pinMode(switch3, INPUT_PULLUP);
   pinMode(switch4, INPUT_PULLUP);
@@ -114,86 +129,135 @@ void setup() {
   digitalWrite(kraan4, HIGH);
   digitalWrite(kraan5, HIGH);
   digitalWrite(kraan6, HIGH);
-
-  rekState = 0;  // startten in wachtstand van het rek
+  delay(kraanPauze);  // voor de zekerheid wachten op de eindpositie van de kranen
+  rekState = 0;       // startten in wachtstand van het rek
 }
 
 void loop() {
-  if (digitalRead(resetButton) == LOW) {  // is de reset button ingedrukt?
-    abort();                              // Esp herstart en komt door de void setup() in de rust stand met hoofdkraan dicht en kogelkranen open
+  // lezen van de buttons
+  startButtonState = digitalRead(startButton);
+  Serial.printf("Startknop: %u\n", startButtonState);
+  Serial.printf("Rekstatus: %u\n", rekState);
+  if (startButtonState == 0) {
+    rekState = 1;
+    Serial.println("Rekstatus = 1");
   }
 
-  if (digitalRead(startSwitch == LOW)) {  // lees de startschakelaar. Dit moet een drukchakelaar zijn
-    rekState = 1;                         //het rek wordt actief
+  if (rekState == 1) {
+    attachInterrupt(flowSensor, ISRpulsen, RISING);  // interrupt voor het tellen van de pulsen aanzetten, kan ook in de setup
+    // als we begonnen zijn
+    switch1State = digitalRead(switch1);  // lezen van de schakelaars
+    switch2State = digitalRead(switch2);
+    switch3State = digitalRead(switch3);
+    switch4State = digitalRead(switch4);
+    switch5State = digitalRead(switch5);
+    switch6State = digitalRead(switch6);
 
-    attachInterrupt(flowSensor, ISRpulsen, RISING);  // we zetten de interruptPin aan zodat we de pulsen van van de flowsensor kunnen tellen
-    if (digitalRead(switch1 == LOW)) {               // lees trayschakelaar 1
-      switch1State = 1;                              // sla de stand op in een boolse waarde
+    Serial.printf("switch1State %u\n", switch1State);
+    Serial.printf("switch2State %u\n", switch2State);
+    Serial.printf("switch3State %u\n", switch3State);
+    Serial.printf("switch4State %u\n", switch4State);
+    Serial.printf("switch5State %u\n", switch5State);
+    Serial.printf("switch6State %u\n", switch6State);
+    delay(5000);
+
+    if (switch1State == 0) {
+      tray1Status = 1;
     }
-    if (digitalRead(switch2 == LOW)) {  // lees trayschakelaar 2
-      switch2State = 1;                 // sla de stand op in een boolse waarde
+    if (switch2State == 0) {
+      tray2Status = 1;
     }
-    if (digitalRead(switch3 == LOW)) {  // lees trayschakelaar 3
-      switch3State = 1;                 // sla de stand op in een boolse waarde
+    if (switch3State == 0) {
+      tray3Status = 1;
     }
-    if (digitalRead(switch4 == LOW)) {  // lees trayschakelaar 4
-      switch4State = 1;                 // sla de stand op in een boolse waarde
+    if (switch4State == 0) {
+      tray4Status = 1;
     }
-    if (digitalRead(switch5 == LOW)) {  // lees trayschakelaar 5
-      switch5State = 1;                 // sla de stand op in een boolse waarde
+    if (switch5State == 0) {
+      tray5Status = 1;
     }
-    if (digitalRead(switch6 == LOW)) {  // lees trayschakelaar 6
-      bool switch6State = 1;            // sla de stand op in een boolse waarde
+    if (switch5State == 0) {
+      tray6Status = 1;
     }
   }
 
   //afhandelen standen van de schakelaars
 
-  if (switch1State == 1 && rekState == 1) {  // schakelaar 1 staat aan
-    tray1Status = 1;                         // we gaan tray 1 vullen
-                                             // bij het opstarten stonden alle kranen open
-    digitalWrite(kraan1, LOW);               // kogelkraan tray 1 dicht
-    delay(kraanPauze);                       // pauze om de kogelkraan de tijd te geven om te sluiten
-    while (pulseCount < pulseWaarde) {       // pulsen tellen
-      digitalWrite(kraan0, HIGH);            // hoofdkraan open om te vullen
+  if (tray1Status == 1) {  // schakelaar 1 stond dus geselecteerd
+    Serial.println("Tray 1 is aan de beurt");
+    delay(2000);  // we gaan tray 1 vullen
+                  // bij het opstarten / resetten stonden alle kranen open
+
+    digitalWrite(kraan1, LOW);  // kogelkraan tray 1 dicht
+    Serial.println("Traykraan 1 dicht");
+    Serial.println("Wachten op sluiten");
+    delay(kraanPauze);
+    digitalWrite(kraan0, HIGH);  // hoofdkraan open om te vullen
+    Serial.println("Hoofdkraan open");
+    delay(2000);
+    /*            // pauze om de kogelkraan de tijd te geven om te sluiten
+    while (pulseCount < pulseWaarde) {  // pulsen tellen
+      digitalWrite(kraan0, HIGH);       // hoofdkraan open om te vullen
+      Serial.println("Hoofdkraan open");
     }
-    digitalWrite(kraan0, LOW);   // als pulsen voldoende zijn dankraan 0 dicht
-    pulseCount = 0;              // pulsen terugzetten naar 0
-    tray1Status = 2;             // traystatus 2 = inwateren
-    delay(inwateren * 60000);    // timer starten voor het inwateren *60000 om aan minuten te komen
-    tray1Status = 3;             // we gaan tray 1 laten leeglopen
-    digitalWrite(kraan1, HIGH);  // kogelkraan tray 1 dicht// kraan 1 open (staan nu allemaal open)
-    delay(leegloop * 60000);     // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
-    tray1Status = 0;             // tray status 0
-    switch1State = 0;            // leesstatus van trayschakelaar van 1 terug naar 0
+    */
+    for (pulseCount = 0; pulseCount <= pulseWaarde; pulseCount++) {
+      Serial.printf("Pulsen tellen: %u\n", pulseCount);
+      delay(20);
+    }
+    digitalWrite(kraan0, LOW);  // als pulsen voldoende zijn dankraan 0 dicht
+    Serial.println("Hoofdkraan dicht");
+    Serial.println("Start inwateren");
+    pulseCount = 0;           // pulsen terugzetten naar 0
+    tray1Status = 2;          // traystatus 2 = inwateren
+    delay(inwateren * 6000);  // timer starten voor het inwateren *60000 om aan minuten te komen
+    tray1Status = 3;          // we gaan tray 1 laten leeglopen
+    Serial.println("Inwateren klaar, tray kraan 1 weer open");
+    digitalWrite(kraan1, HIGH);  // kraan 1 open (staan nu allemaal open)
+    delay(leegloop * 6000);      // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
+    Serial.println("Leeglopen klaar. Naar volgende tray, anders klaar");
+    tray1Status = 0;   // tray status 0
+    switch1State = 0;  // leesstatus van trayschakelaar van 1 terug naar 0
+    delay(2000);
   }
 
-  if (switch2State == 1 && tray1Status == 0 && rekState == 1) {  //staat schakelaar 2 aan en is tray 1 klaar?
-    tray2Status = 1;                                             // we gaan tray 2 vullen
-                                                                 // bij het opstarten stonden alle kranen open
-    digitalWrite(kraan2, LOW);                                   // kogelkraan tray 1 dicht
-    delay(kraanPauze);                                           // pauze om de kogelkraan de tijd te geven om te sluiten
-    while (pulseCount < pulseWaarde) {                           // pulsen tellen
-      digitalWrite(kraan0, HIGH);                                // hoofdkraan open om te vullen
+  if (tray2Status == 1 && tray1Status == 0 && rekState == 1) {  //staat schakelaar 2 aan en is tray 1 klaar?
+    tray2Status = 1;                                            // we gaan tray 2 vullen
+    Serial.println("Tray 2 is aan de beurt");
+    delay(2000);                // bij het opstarten stonden alle kranen open
+    digitalWrite(kraan2, LOW);  // kogelkraan tray 1 dicht
+    Serial.println("Traykraan 2 dicht");
+    Serial.println("Wachten op sluiten");
+    delay(kraanPauze);
+    /*            // pauze om de kogelkraan de tijd te geven om te sluiten
+    while (pulseCount < pulseWaarde) {  // pulsen tellen
+      digitalWrite(kraan0, HIGH);       // hoofdkraan open om te vullen
+      Serial.println("Hoofdkraan open");
     }
-    digitalWrite(kraan0, LOW);   // als pulsen voldoende zijn dankraan 0 dicht
-    pulseCount = 0;              // pulsen terugzetten naar 0
-    tray2Status = 2;             // traystatus 2 = inwateren
-    delay(inwateren * 60000);    // timer starten voor het inwateren *60000 om aan minuten te komen
-    tray2Status = 3;             // we gaan tray 1 laten leeglopen
-    digitalWrite(kraan2, HIGH);  // kogelkraan tray 2 dicht open (staan nu allemaal open)
-    delay(leegloop * 60000);     // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
-    tray2Status = 0;             // tray status 0, tray is leeg
-    switch2State = 0;            // leesstatus van trayschakelaar van 1 terug naar 0
+    */
+    for (pulseCount = 0; pulseCount <= pulseWaarde; pulseCount++) {
+      Serial.printf("Pulsen tellen: %u\n", pulseCount);
+      delay(20);
+    }
+    digitalWrite(kraan0, LOW);  // als pulsen voldoende zijn dankraan 0 dicht
+    Serial.println("Hoofdkraan dicht");
+    Serial.println("Start inwateren");
+    pulseCount = 0;           // pulsen terugzetten naar 0
+    tray2Status = 2;          // traystatus 2 = inwateren
+    delay(inwateren * 6000);  // timer starten voor het inwateren *60000 om aan minuten te komen
+    tray2Status = 3;          // we gaan tray 2 laten leeglopen
+    Serial.print("Inwateren klaar, tray kraan 2 weer open");
+    digitalWrite(kraan2, HIGH);  // kraan 1 open (staan nu allemaal open)
+    delay(leegloop * 6000);      // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
+    Serial.print("Leeglopen klaar. Naar volgende tray, anders klaar");
+    tray2Status = 0;   // tray status 0
+    switch2State = 0;  // leesstatus van trayschakelaar van 1 terug naar 0
   }
   // nog 4 trays afhandelen
 
-  rekState = 0;                             // rek terug zetten in de ruststand
-  
-  while (rekState == 3) {                   // is het rek in de alarm stand??
-    if (digitalRead(resetButton) == LOW) {  // is de reset button ingedrukt?
-      abort();                              // Esp herstart
-    }
+  rekState = 0;  // rek in de ruststand
+
+  while (rekState == 3) {
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillis >= 1000) {
       Serial.println("Alarm");  //Zolang de alarmstand duurt blijft deze booschap herhalen en gebeurt er niets
@@ -201,9 +265,12 @@ void loop() {
     }
   }
 }
-
 void ISRpulsen() {
   pulseCount++;  // Interrupt routine voor het ophogen van de pulse teller
+}
+
+void ISRreset() {
+  abort();
 }
 
 void ISRalarm() {

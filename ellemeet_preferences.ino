@@ -24,7 +24,7 @@ void setup() {
 
   Serial.printf("Retrived tray1Status: %u\n", tray1Status);
   Serial.printf("Retrived tray2Status: %u\n", tray2Status);
-  // Increase counter by 1
+  // Random set tray status
   tray1Status = random(0, 3);
   tray2Status = random(0, 3);
   tray3Status = random(0, 3);

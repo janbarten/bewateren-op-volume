@@ -2,11 +2,15 @@
 // april 2025
 
 /*
+V2.2
+- pinbezetting gewijzigd. P2 mag niet aangesloten zijn bij upload
+- getest met relais blok
+
 V2.1
 - uitgebreid naar 6 trays
 
 V2.0
-- code herzien. Werkt nu met een gesumuleerde flowsensor
+- code herzien. Werkt nu met een gesimuleerde flowsensor
 - pinbeztting aangepast i.v.m. het ontbreken van pin 24
 
 V1.3
@@ -23,11 +27,11 @@ Hieronder de pinbezetting volgens voorstel!!
 */
 
 // hoofdkraan toekennen aan een pin
-int kraan0 = 12;
+int kraan0 = 2;
 
 // 6 kogelkranen toekennen aan een pin
-int kraan1 = 20;
-int kraan2 = 24;
+int kraan1 = 19;
+int kraan2 = 23;
 int kraan3 = 25;
 int kraan4 = 26;
 int kraan5 = 27;
@@ -39,7 +43,7 @@ int startButton = 18;
 
 // tray schakelaars toekennen aan een pin
 int switch1 = 4;
-int switch2 = 23;
+int switch2 = 13;
 int switch3 = 14;
 int switch4 = 15;
 int switch5 = 16;
@@ -122,8 +126,8 @@ void setup() {
   pinMode(switch5, INPUT_PULLUP);
   pinMode(switch6, INPUT_PULLUP);
 
-  // hoofdkraan dicht
-  digitalWrite(kraan0, LOW);
+  // hoofdkraan dicht, ook veilig bij stroomuitvalt
+  digitalWrite(kraan0, HIGH);  // relais lampje is uit, kraan is dicht
 
   // kogelkranen open zettem
   digitalWrite(kraan1, HIGH);  // nog onderzoeken of dit niet LOW moet zijn
@@ -185,7 +189,7 @@ void loop() {
   }
 
   //afhandelen standen van de schakelaars
-
+  // Tray 1
   if (tray1Status == 1) {  // schakelaar 1 stond dus geselecteerd
     Serial.println("Tray 1 is aan de beurt");
     delay(2000);  // we gaan tray 1 vullen
@@ -195,12 +199,12 @@ void loop() {
     Serial.println("Traykraan 1 dicht");
     Serial.println("Wachten op sluiten");
     delay(kraanPauze);
-    digitalWrite(kraan0, HIGH);  // hoofdkraan open om te vullen
+    digitalWrite(kraan0, LOW);  // hoofdkraan open om te vullen
     Serial.println("Hoofdkraan open");
     delay(2000);
     /*            // pauze om de kogelkraan de tijd te geven om te sluiten
     while (pulseCount < pulseWaarde) {  // pulsen tellen
-      digitalWrite(kraan0, HIGH);       // hoofdkraan open om te vullen
+      digitalWrite(kraan0, LOW);       // hoofdkraan open om te vullen
       Serial.println("Hoofdkraan open");
     }
     */
@@ -208,7 +212,7 @@ void loop() {
       Serial.printf("Pulsen tellen: %u\n", pulseCount);
       delay(20);
     }
-    digitalWrite(kraan0, LOW);  // als pulsen voldoende zijn dan kraan 0 dicht
+    digitalWrite(kraan0, HIGH);  // als pulsen voldoende zijn dan hoofdkraan dicht
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 1");
     pulseCount = 0;           // pulsen terugzetten naar 0
@@ -224,6 +228,7 @@ void loop() {
     delay(2000);
   }
 
+  // Tray 2
   if (tray2Status == 1 && rekState == 1) {  //staat schakelaar 2 aan en is tray 1 klaar?
     tray2Status = 1;                        // we gaan tray 2 vullen
     Serial.println("Tray 2 is aan de beurt");
@@ -232,9 +237,12 @@ void loop() {
     Serial.println("Traykraan 2 dicht");
     Serial.println("Wachten op sluiten");
     delay(kraanPauze);
+    digitalWrite(kraan0, LOW);  // hoofdkraan open om te vullen
+    Serial.println("Hoofdkraan open");
+    delay(2000);
     /*            // pauze om de kogelkraan de tijd te geven om te sluiten
     while (pulseCount < pulseWaarde) {  // pulsen tellen
-      digitalWrite(kraan0, HIGH);       // hoofdkraan open om te vullen
+      digitalWrite(kraan0, LOW);       // hoofdkraan open om te vullen
       Serial.println("Hoofdkraan open");
     }
     */
@@ -242,7 +250,7 @@ void loop() {
       Serial.printf("Pulsen tellen: %u\n", pulseCount);
       delay(20);
     }
-    digitalWrite(kraan0, LOW);  // als pulsen voldoende zijn dan kraan 0 dicht
+    digitalWrite(kraan0, HIGH);  // als pulsen voldoende zijn dan hoofdkraan dicht
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 2");
     pulseCount = 0;           // pulsen terugzetten naar 0
@@ -257,6 +265,7 @@ void loop() {
     switch2State = 0;  // leesstatus van trayschakelaar van 1 terug naar 0
   }
 
+  //Tray 3
   if (tray3Status == 1 && rekState == 1) {  //staat schakelaar 2 aan?
     tray3Status = 1;                        // we gaan tray 3 vullen
     Serial.println("Tray 3 is aan de beurt");
@@ -265,9 +274,12 @@ void loop() {
     Serial.println("Traykraan 3 dicht");
     Serial.println("Wachten op sluiten");
     delay(kraanPauze);
+    digitalWrite(kraan0, LOW);  // hoofdkraan open om te vullen
+    Serial.println("Hoofdkraan open");
+    delay(2000);
     /*            // pauze om de kogelkraan de tijd te geven om te sluiten
     while (pulseCount < pulseWaarde) {  // pulsen tellen
-      digitalWrite(kraan0, HIGH);       // hoofdkraan open om te vullen
+      digitalWrite(kraan0, LOW);       // hoofdkraan open om te vullen
       Serial.println("Hoofdkraan open");
     }
     */
@@ -275,7 +287,7 @@ void loop() {
       Serial.printf("Pulsen tellen: %u\n", pulseCount);
       delay(20);
     }
-    digitalWrite(kraan0, LOW);  // als pulsen voldoende zijn dan kraan 0 dicht
+    digitalWrite(kraan0, HIGH);  // als pulsen voldoende zijn dan hoofdkraan dicht
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 3");
     pulseCount = 0;           // pulsen terugzetten naar 0
@@ -290,6 +302,7 @@ void loop() {
     switch3State = 0;  // leesstatus van trayschakelaar van 1 terug naar 0
   }
 
+  // Tray 4
   if (tray4Status == 1 && rekState == 1) {  //staat schakelaar 2
     tray4Status = 1;                        // we gaan tray 4 vullen
     Serial.println("Tray 4 is aan de beurt");
@@ -298,9 +311,12 @@ void loop() {
     Serial.println("Traykraan 4 dicht");
     Serial.println("Wachten op sluiten");
     delay(kraanPauze);
+    digitalWrite(kraan0, LOW);  // hoofdkraan open om te vullen
+    Serial.println("Hoofdkraan open");
+    delay(2000);
     /*            // pauze om de kogelkraan de tijd te geven om te sluiten
     while (pulseCount < pulseWaarde) {  // pulsen tellen
-      digitalWrite(kraan0, HIGH);       // hoofdkraan open om te vullen
+      digitalWrite(kraan0, LOW);       // hoofdkraan open om te vullen
       Serial.println("Hoofdkraan open");
     }
     */
@@ -308,7 +324,7 @@ void loop() {
       Serial.printf("Pulsen tellen: %u\n", pulseCount);
       delay(20);
     }
-    digitalWrite(kraan0, LOW);  // als pulsen voldoende zijn dan kraan 0 dicht
+    digitalWrite(kraan0, HIGH);  // als pulsen voldoende zijn dan hoofdkraan dicht
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 4");
     pulseCount = 0;           // pulsen terugzetten naar 0
@@ -323,6 +339,7 @@ void loop() {
     switch4State = 0;  // leesstatus van trayschakelaar van 1 terug naar 0
   }
 
+  // Tray 5
   if (tray5Status == 1 && rekState == 1) {  //staat schakelaar 2 aan en is tray 5 klaar?
     tray5Status = 1;                        // we gaan tray 5 vullen
     Serial.println("Tray 5 is aan de beurt");
@@ -331,9 +348,12 @@ void loop() {
     Serial.println("Traykraan 5 dicht");
     Serial.println("Wachten op sluiten");
     delay(kraanPauze);
+    digitalWrite(kraan0, LOW);  // hoofdkraan open om te vullen
+    Serial.println("Hoofdkraan open");
+    delay(2000);
     /*            // pauze om de kogelkraan de tijd te geven om te sluiten
     while (pulseCount < pulseWaarde) {  // pulsen tellen
-      digitalWrite(kraan0, HIGH);       // hoofdkraan open om te vullen
+      digitalWrite(kraan0, LOW);       // hoofdkraan open om te vullen
       Serial.println("Hoofdkraan open");
     }
     */
@@ -341,7 +361,7 @@ void loop() {
       Serial.printf("Pulsen tellen: %u\n", pulseCount);
       delay(20);
     }
-    digitalWrite(kraan0, LOW);  // als pulsen voldoende zijn dan kraan 0 dicht
+    digitalWrite(kraan0, HIGH);  // als pulsen voldoende zijn dan hoofdkraan dicht
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 5");
     pulseCount = 0;           // pulsen terugzetten naar 0
@@ -357,6 +377,7 @@ void loop() {
   }
 
 
+  // Tray 6
   if (tray5Status == 1 && rekState == 1) {  //staat schakelaar 2 aan en is tray 5 klaar?
     tray5Status = 1;                        // we gaan tray 6 vullen
     Serial.println("Tray 6 is aan de beurt");
@@ -365,9 +386,12 @@ void loop() {
     Serial.println("Traykraan 6 dicht");
     Serial.println("Wachten op sluiten");
     delay(kraanPauze);
+    digitalWrite(kraan0, LOW);  // hoofdkraan open om te vullen
+    Serial.println("Hoofdkraan open");
+    delay(2000);
     /*            // pauze om de kogelkraan de tijd te geven om te sluiten
     while (pulseCount < pulseWaarde) {  // pulsen tellen
-      digitalWrite(kraan0, HIGH);       // hoofdkraan open om te vullen
+      digitalWrite(kraan0, LOW);       // hoofdkraan open om te vullen
       Serial.println("Hoofdkraan open");
     }
     */
@@ -375,7 +399,7 @@ void loop() {
       Serial.printf("Pulsen tellen: %u\n", pulseCount);
       delay(20);
     }
-    digitalWrite(kraan0, LOW);  // als pulsen voldoende zijn dan kraan 0 dicht
+    digitalWrite(kraan0, HIGH);  // als pulsen voldoende zijn dan hoofdkraan dicht
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 6");
     pulseCount = 0;           // pulsen terugzetten naar 0

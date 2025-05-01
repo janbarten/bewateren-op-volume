@@ -137,7 +137,9 @@ void setup() {
   digitalWrite(kraan4, HIGH);
   digitalWrite(kraan5, HIGH);
   digitalWrite(kraan6, HIGH);
-  delay(kraanPauze);  // voor de zekerheid wachten op de eindpositie van de kranen
+  
+  delay(kraanPauze);  // voor de zekerheid wachten op de eindpositie van de kranen i.v.m. een mogelijke reset
+  
   rekState = 0;       // startten in wachtstand van het rek
 }
 

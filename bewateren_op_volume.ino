@@ -150,8 +150,7 @@ void loop() {
   Serial.printf("Rekstatus: %u\n", rekState);
   if (startButtonState == 0) {
     rekState = 1;
-    Serial.println("Rekstatus = 1");
-  }
+   }
 
   if (rekState == 1) {
     attachInterrupt(flowSensor, ISRpulsen, RISING);  // interrupt voor het tellen van de pulsen aanzetten, kan ook in de setup

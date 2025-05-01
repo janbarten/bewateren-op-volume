@@ -27,7 +27,7 @@ Hieronder de pinbezetting volgens voorstel!!
 */
 
 // hoofdkraan toekennen aan een pin
-int kraan0 = 2;
+int kraan0 = 5;
 
 // 6 kogelkranen toekennen aan een pin
 int kraan1 = 19;

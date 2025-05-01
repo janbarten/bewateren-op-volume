@@ -399,7 +399,7 @@ void loop() {
     delay(inwateren * 6000);  // timer starten voor het inwateren *60000 om aan minuten te komen
     Serial.println("Inwateren klaar, tray kraan 6 weer open");
     digitalWrite(kraan6, HIGH);  // kraan 1 open (staan nu allemaal open)
-    delay(leegloop * 6000);      // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
+    delay(leegloop * 6000);      // tijd gunnen voor het leeglopen *60000 om aan minuten te komen of kan deze weg?
     Serial.println("Leeglopen klaar. Einde van deze run");
     tray6Status = 0;   // tray status 0
     switch6State = 0;  // leesstatus van trayschakelaar van 1 terug naar 0

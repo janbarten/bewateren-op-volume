@@ -5,6 +5,7 @@
 V2.2
 - pinbezetting gewijzigd. P2 mag niet aangesloten zijn bij upload
 - getest met relais blok
+- overbodige tray statussen verwijderd
 
 V2.1
 - uitgebreid naar 6 trays
@@ -61,7 +62,7 @@ Variabelen
 bool rekState = 0;  // 0 = het rek is in rust/wachtstand, 1 = het rek in actief met bewateren  3 = ALARM
 
 // bij het opstarten starten we in alle trays in de wachtstand
-int tray1Status = 0;  // 0 = wachten, 1 = vullen, 2 = inwateren, 3 = leeglopen
+int tray1Status = 0;  // 0 = wachten, 1 = vullen
 int tray2Status = 0;
 int tray3Status = 0;
 int tray4Status = 0;
@@ -216,9 +217,7 @@ void loop() {
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 1");
     pulseCount = 0;           // pulsen terugzetten naar 0
-    tray1Status = 2;          // traystatus 2 = inwateren
     delay(inwateren * 6000);  // timer starten voor het inwateren *60000 om aan minuten te komen
-    tray1Status = 3;          // we gaan tray 1 laten leeglopen
     Serial.println("Inwateren klaar, tray kraan 1 weer open");
     digitalWrite(kraan1, HIGH);  // kraan 1 open (staan nu allemaal open)
     delay(leegloop * 6000);      // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
@@ -253,10 +252,8 @@ void loop() {
     digitalWrite(kraan0, HIGH);  // als pulsen voldoende zijn dan hoofdkraan dicht
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 2");
-    pulseCount = 0;           // pulsen terugzetten naar 0
-    tray2Status = 2;          // traystatus 2 = inwateren
+    pulseCount = 0;  // pulsen terugzetten naar 0
     delay(inwateren * 6000);  // timer starten voor het inwateren *60000 om aan minuten te komen
-    tray2Status = 3;          // we gaan tray 2 laten leeglopen
     Serial.println("Inwateren klaar, tray kraan 2 weer open");
     digitalWrite(kraan2, HIGH);  // kraan 1 open (staan nu allemaal open)
     delay(leegloop * 6000);      // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
@@ -291,9 +288,7 @@ void loop() {
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 3");
     pulseCount = 0;           // pulsen terugzetten naar 0
-    tray3Status = 2;          // traystatus 2 = inwateren
     delay(inwateren * 6000);  // timer starten voor het inwateren *60000 om aan minuten te komen
-    tray3Status = 3;          // we gaan tray 2 laten leeglopen
     Serial.println("Inwateren klaar, tray kraan 3 weer open");
     digitalWrite(kraan3, HIGH);  // kraan 3 open (staan nu allemaal open)
     delay(leegloop * 6000);      // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
@@ -328,9 +323,7 @@ void loop() {
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 4");
     pulseCount = 0;           // pulsen terugzetten naar 0
-    tray4Status = 2;          // traystatus 2 = inwateren
     delay(inwateren * 6000);  // timer starten voor het inwateren *60000 om aan minuten te komen
-    tray4Status = 3;          // we gaan tray 4 laten leeglopen
     Serial.println("Inwateren klaar, tray kraan 4 weer open");
     digitalWrite(kraan4, HIGH);  // kraan 4 open (staan nu allemaal open)
     delay(leegloop * 6000);      // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
@@ -365,9 +358,7 @@ void loop() {
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 5");
     pulseCount = 0;           // pulsen terugzetten naar 0
-    tray5Status = 2;          // traystatus 2 = inwateren
     delay(inwateren * 6000);  // timer starten voor het inwateren *60000 om aan minuten te komen
-    tray5Status = 3;          // we gaan tray 5 laten leeglopen
     Serial.println("Inwateren klaar, tray kraan 5 weer open");
     digitalWrite(kraan5, HIGH);  // kraan 5 open (staan nu allemaal open)
     delay(leegloop * 6000);      // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
@@ -403,9 +394,7 @@ void loop() {
     Serial.println("Hoofdkraan dicht");
     Serial.println("Start inwateren tray 6");
     pulseCount = 0;           // pulsen terugzetten naar 0
-    tray6Status = 2;          // traystatus 2 = inwateren
     delay(inwateren * 6000);  // timer starten voor het inwateren *60000 om aan minuten te komen
-    tray6Status = 3;          // we gaan tray 6 laten leeglopen
     Serial.println("Inwateren klaar, tray kraan 6 weer open");
     digitalWrite(kraan6, HIGH);  // kraan 1 open (staan nu allemaal open)
     delay(leegloop * 6000);      // tijd gunnen voor het leeglopen *60000 om aan minuten te komen
